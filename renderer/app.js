@@ -1,6 +1,30 @@
 // ===========================
-// ClipNotes — App Logic
+// ClipNotes — App Logic (Clean)
 // ===========================
+
+// Inject all SVG icons into the DOM
+function initIcons() {
+    const iconMap = {
+        'titlebar-logo': Icons.logo,
+        'icon-minimize': Icons.minimize,
+        'icon-maximize': Icons.maximize,
+        'icon-close': Icons.close,
+        'tab-icon-notes': Icons.notes,
+        'tab-icon-clipboard': Icons.clipboard,
+        'search-icon': Icons.search,
+        'icon-add': Icons.add,
+        'icon-back': Icons.back,
+        'icon-save': Icons.save,
+        'icon-clear': Icons.clear
+    };
+
+    for (const [id, svg] of Object.entries(iconMap)) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = svg;
+    }
+}
+
+initIcons();
 
 // State
 let currentTab = 'notes';
@@ -74,13 +98,13 @@ document.getElementById('btn-back').addEventListener('click', hideEditor);
 document.getElementById('btn-save').addEventListener('click', async () => {
     if (!editingNote) return;
 
-    editingNote.title = noteTitle.value.trim() || 'Unbenannte Notiz';
+    editingNote.title = noteTitle.value.trim() || 'Untitled Note';
     editingNote.content = noteContent.value;
     editingNote.updatedAt = new Date().toISOString();
 
     await window.api.saveNote(editingNote);
     hideEditor();
-    showToast('Notiz gespeichert ✓');
+    showToast('Note saved');
     loadNotes();
 });
 
@@ -115,8 +139,8 @@ function renderNotes(notes) {
     if (filtered.length === 0) {
         notesList.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📝</div>
-        <div class="empty-text">${searchQuery ? 'Keine Ergebnisse' : 'Noch keine Notizen.<br>Erstelle deine erste Notiz!'}</div>
+        <div class="empty-icon">${Icons.empty_notes}</div>
+        <div class="empty-text">${searchQuery ? 'No results' : 'No notes yet.<br>Create your first note!'}</div>
       </div>
     `;
         return;
@@ -124,11 +148,11 @@ function renderNotes(notes) {
 
     notesList.innerHTML = filtered.map(note => `
     <div class="note-card" data-id="${note.id}">
-      <div class="note-card-title">${escapeHtml(note.title || 'Unbenannte Notiz')}</div>
-      <div class="note-card-preview">${escapeHtml(note.content.substring(0, 120)) || 'Leer...'}</div>
+      <div class="note-card-title">${escapeHtml(note.title || 'Untitled Note')}</div>
+      <div class="note-card-preview">${escapeHtml(note.content.substring(0, 120)) || 'Empty...'}</div>
       <div class="note-card-meta">
         <span class="note-card-date">${formatDate(note.updatedAt)}</span>
-        <button class="btn-icon danger" data-delete="${note.id}" title="Löschen">🗑</button>
+        <button class="btn-icon danger" data-delete="${note.id}" title="Delete">${Icons.trash}</button>
       </div>
     </div>
   `).join('');
@@ -136,7 +160,7 @@ function renderNotes(notes) {
     // Event listeners
     notesList.querySelectorAll('.note-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.dataset.delete) return;
+            if (e.target.closest('[data-delete]')) return;
             const note = notes.find(n => n.id === card.dataset.id);
             if (note) {
                 editingNote = { ...note };
@@ -149,7 +173,7 @@ function renderNotes(notes) {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await window.api.deleteNote(btn.dataset.delete);
-            showToast('Notiz gelöscht');
+            showToast('Note deleted');
             loadNotes();
         });
     });
@@ -166,13 +190,13 @@ function renderClipboard(history) {
         !searchQuery || e.text.toLowerCase().includes(searchQuery)
     );
 
-    clipCount.textContent = `${filtered.length} Einträge`;
+    clipCount.textContent = `${filtered.length} entries`;
 
     if (filtered.length === 0) {
         clipboardList.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-text">${searchQuery ? 'Keine Ergebnisse' : 'Clipboard ist leer.<br>Kopiere etwas mit Ctrl+C!'}</div>
+        <div class="empty-icon">${Icons.empty_clipboard}</div>
+        <div class="empty-text">${searchQuery ? 'No results' : 'Clipboard is empty.<br>Copy something with Ctrl+C!'}</div>
       </div>
     `;
         return;
@@ -180,12 +204,12 @@ function renderClipboard(history) {
 
     clipboardList.innerHTML = filtered.map(entry => `
     <div class="clip-entry" data-id="${entry.id}">
-      <div class="clip-text" data-copy="${escapeAttr(entry.text)}" title="Klicken zum Kopieren">${escapeHtml(entry.text.substring(0, 300))}${entry.text.length > 300 ? '...' : ''}</div>
+      <div class="clip-text" data-copy="${escapeAttr(entry.text)}" title="Click to copy">${escapeHtml(entry.text.substring(0, 300))}${entry.text.length > 300 ? '...' : ''}</div>
       <div class="clip-meta">
         <span class="clip-time">${formatTime(entry.timestamp)}</span>
         <div class="clip-actions">
-          <button class="btn-icon" data-recopy="${escapeAttr(entry.text)}" title="Kopieren">📋</button>
-          <button class="btn-icon danger" data-clipdel="${entry.id}" title="Löschen">✕</button>
+          <button class="btn-icon" data-recopy="${escapeAttr(entry.text)}" title="Copy">${Icons.copy}</button>
+          <button class="btn-icon danger" data-clipdel="${entry.id}" title="Delete">${Icons.trash}</button>
         </div>
       </div>
     </div>
@@ -195,7 +219,7 @@ function renderClipboard(history) {
     clipboardList.querySelectorAll('[data-copy]').forEach(el => {
         el.addEventListener('click', async () => {
             await window.api.copyToClipboard(el.dataset.copy);
-            showToast('In Clipboard kopiert ✓');
+            showToast('Copied');
         });
     });
 
@@ -203,7 +227,7 @@ function renderClipboard(history) {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await window.api.copyToClipboard(btn.dataset.recopy);
-            showToast('In Clipboard kopiert ✓');
+            showToast('Copied');
         });
     });
 
@@ -219,10 +243,10 @@ function renderClipboard(history) {
 
 // Clear all clipboard
 document.getElementById('btn-clear-clip').addEventListener('click', async () => {
-    if (confirm('Alle Clipboard-Einträge löschen?')) {
+    if (confirm('Delete all clipboard entries?')) {
         await window.api.clearClipboard();
         loadClipboard();
-        showToast('Clipboard geleert');
+        showToast('Clipboard cleared');
     }
 });
 
@@ -257,17 +281,17 @@ function formatDate(iso) {
     const now = new Date();
     const diff = now - d;
 
-    if (diff < 60000) return 'Gerade eben';
-    if (diff < 3600000) return `vor ${Math.floor(diff / 60000)} Min.`;
-    if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)} Std.`;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
 
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatTime(iso) {
     const d = new Date(iso);
-    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) +
-        ' · ' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) +
+        ' · ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // Toast
