@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipNotes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Custom Title Bar -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-drag">
+      <span class="titlebar-title">📋 ClipNotes</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="tb-btn minimize" id="btn-minimize" title="Minimieren">─</button>
+      <button class="tb-btn maximize" id="btn-maximize" title="Maximieren">□</button>
+      <button class="tb-btn close" id="btn-close" title="Schließen">✕</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="notes">
+      <span class="tab-icon">📝</span> Notizen
+    </button>
+    <button class="tab" data-tab="clipboard">
+      <span class="tab-icon">📋</span> Clipboard
+      <span class="badge" id="clip-badge" style="display:none">0</span>
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Suchen..." autocomplete="off">
+  </div>
+
+  <!-- Notes Panel -->
+  <div class="panel active" id="panel-notes">
+    <div class="panel-header">
+      <button class="btn-primary" id="btn-new-note">+ Neue Notiz</button>
+    </div>
+    <div class="list" id="notes-list"></div>
+
+    <!-- Note Editor (hidden by default) -->
+    <div class="editor" id="note-editor" style="display:none">
+      <input type="text" class="editor-title" id="note-title" placeholder="Titel...">
+      <textarea class="editor-content" id="note-content" placeholder="Schreib hier deine Notiz..."></textarea>
+      <div class="editor-actions">
+        <button class="btn-secondary" id="btn-back">← Zurück</button>
+        <button class="btn-primary" id="btn-save">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clipboard Panel -->
+  <div class="panel" id="panel-clipboard">
+    <div class="panel-header">
+      <span class="panel-info" id="clip-count">0 Einträge</span>
+      <button class="btn-danger" id="btn-clear-clip">Alle löschen</button>
+    </div>
+    <div class="list" id="clipboard-list"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

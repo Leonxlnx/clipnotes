@@ -1,0 +1,15 @@
+{
+  "name": "clipnotes",
+  "version": "1.0.0",
+  "description": "Notes & Clipboard History Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  }
+}
